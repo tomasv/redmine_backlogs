@@ -69,6 +69,24 @@ class RbSprint < Version
     return stories.inject(0){|sum, story| sum + story.story_points.to_i}
   end
 
+  def velocity
+    return unless project.present?
+
+    spent_time = stories.inject(0) { |sum, story|
+      story.time_entries.map(&:hours).sum + sum
+    }
+    done_points = stories.select(&:closed?).
+      inject(0) { |sum, story| story.story_points + sum }
+
+    ratio = if spent_time.zero?
+              0
+            else
+              done_points / spent_time
+            end
+
+    "Spent: #{spent_time}, done: #{done_points}, velocity: #{ratio}"
+  end
+
   def has_wiki_page
     return false if wiki_page_title.blank?
 
